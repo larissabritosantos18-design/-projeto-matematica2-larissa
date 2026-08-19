@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Geometria Espacial</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #38bdf8;
+      --accent-hover: #0284c7;
+      --text-color: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: var(--accent-color);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .formula-card {
+      background-color: rgba(56, 189, 248, 0.05);
+      border-left: 4px solid var(--accent-color);
+    }
+
+    .formula-card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: var(--accent-color);
+    }
+
+    .formula-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-color);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: #0f172a;
+      color: var(--text-color);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent-color);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--accent-color);
+      color: #0f172a;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .result-card {
+      display: none;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(30, 41, 59, 1));
+      border: 1px solid var(--accent-color);
+    }
+
+    .result-card h2 {
+      font-size: 1.1rem;
+      color: var(--accent-color);
+      margin-bottom: 12px;
+    }
+
+    .result-item {
+      margin: 8px 0;
+      font-size: 1rem;
+    }
+
+    .result-value {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #ffffff;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Geometria Espacial</h1>
+      <p>Calcule o volume e a área total de sólidos geométricos</p>
+    </header>
+
+    <div class="card formula-card" id="formulaCard">
+      <h3 id="formulaTitle">Fórmula do Cilindro</h3>
+      <p id="formulaText">
+        <strong>Volume:</strong> V = π · r² · h<br>
+        <strong>Área Total:</strong> A = 2·π·r·(r + h)
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label for="shapeSelect">Selecione a Forma Geometrica:</label>
+        <select id="shapeSelect" onchange="updateForm()">
+          <option value="cilindro">Cilindro</option>
+          <option value="cone">Cone</option>
+          <option value="esfera">Esfera</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="radiusGroup">
+        <label for="radiusInput">Raio (r):</label>
+        <input type="number" id="radiusInput" placeholder="Ex: 5" step="any" min="0">
+      </div>
+
+      <div class="form-group" id="heightGroup">
+        <label for="heightInput">Altura (h):</label>
+        <input type="number" id="heightInput" placeholder="Ex: 10" step="any" min="0">
+      </div>
+
+      <button class="btn" onclick="calculate()">Calcular</button>
+    </div>
+
+    <div class="card result-card" id="resultCard">
+      <h2>Resultado do Cálculo</h2>
+      <div class="result-item">
+        <span>Volume (V): </span>
+        <span class="result-value" id="volumeResult">-</span>
+      </div>
+      <div class="result-item">
+        <span>Área Total (A): </span>
+        <span class="result-value" id="areaResult">-</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const formulas = {
+      cilindro: {
+        title: "Fórmulas do Cilindro",
+        text: "<strong>Volume:</strong> V = π · r² · h<br><strong>Área Total:</strong> A = 2 · π · r · (r + h)"
+      },
+      cone: {
+        title: "Fórmulas do Cone",
+        text: "<strong>Volume:</strong> V = (1/3) · π · r² · h<br><strong>Geratriz (g):</strong> g = √(r² + h²)<br><strong>Área Total:</strong> A = π · r · (r + g)"
+      },
+      esfera: {
+        title: "Fórmulas da Esfera",
+        text: "<strong>Volume:</strong> V = (4/3) · π · r³<br><strong>Área Total:</strong> A = 4 · π · r²"
+      }
+    };
+
+    function updateForm() {
+      const shape = document.getElementById('shapeSelect').value;
+      const heightGroup = document.getElementById('heightGroup');
+      const formulaTitle = document.getElementById('formulaTitle');
+      const formulaText = document.getElementById('formulaText');
+
+      // Oculta resultado anterior ao mudar de forma
+      document.getElementById('resultCard').style.display = 'none';
+
+      // Atualiza o card da fórmula
+      formulaTitle.innerText = formulas[shape].title;
+      formulaText.innerHTML = formulas[shape].text;
+
+      // Oculta ou exibe a altura dependendo da forma
+      if (shape === 'esfera') {
+        heightGroup.classList.add('hidden');
+      } else {
+        heightGroup.classList.remove('hidden');
+      }
+    }
+
+    function calculate() {
+      const shape = document.getElementById('shapeSelect').value;
+      const r = parseFloat(document.getElementById('radiusInput').value);
+      const h = parseFloat(document.getElementById('heightInput').value);
+
+      if (isNaN(r) || r <= 0) {
+        alert('Por favor, insira um valor válido para o raio.');
+        return;
+      }
+
+      let volume = 0;
+      let area = 0;
+
+      if (shape === 'cilindro') {
+        if (isNaN(h) || h <= 0) {
+          alert('Por favor, insira um valor válido para a altura.');
+          return;
+        }
+        volume = Math.PI * Math.pow(r, 2) * h;
+        area = 2 * Math.PI * r * (r + h);
+
+      } else if (shape === 'cone') {
+        if (isNaN(h) || h <= 0) {
+          alert('Por favor, insira um valor válido para a altura.');
+          return;
+        }
+        const g = Math.sqrt(Math.pow(r, 2) + Math.pow(h, 2)); // Geratriz
+        volume = (1 / 3) * Math.PI * Math.pow(r, 2) * h;
+        area = Math.PI * r * (r + g);
+
+      } else if (shape === 'esfera') {
+        volume = (4 / 3) * Math.PI * Math.pow(r, 3);
+        area = 4 * Math.PI * Math.pow(r, 2);
+      }
+
+      // Exibe os resultados formatados
+      document.getElementById('volumeResult').innerText = `${volume.toFixed(2)} u³`;
+      document.getElementById('areaResult').innerText = `${area.toFixed(2)} u²`;
+      document.getElementById('resultCard').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
