@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Geometria Espacial</title>
+  <title>Desafio de Geometria Espacial</title>
   <style>
     :root {
       --bg-color: #0f172a;
       --card-bg: #1e293b;
       --accent-color: #38bdf8;
       --accent-hover: #0284c7;
+      --danger-color: #ef4444;
+      --success-color: #22c55e;
       --text-color: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
@@ -56,6 +58,16 @@
       font-size: 0.95rem;
     }
 
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      background-color: var(--card-bg);
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      font-weight: bold;
+    }
+
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -70,15 +82,23 @@
     }
 
     .formula-card h3 {
-      font-size: 1rem;
+      font-size: 1.1rem;
       margin-bottom: 8px;
       color: var(--accent-color);
     }
 
     .formula-card p {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--text-muted);
-      line-height: 1.4;
+      line-height: 1.5;
+    }
+
+    .challenge-box {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      margin-bottom: 12px;
+      text-align: center;
     }
 
     .form-group {
@@ -93,7 +113,7 @@
       color: var(--text-color);
     }
 
-    select, input {
+    input {
       width: 100%;
       padding: 12px;
       border-radius: 8px;
@@ -105,7 +125,7 @@
       transition: border-color 0.2s;
     }
 
-    select:focus, input:focus {
+    input:focus {
       border-color: var(--accent-color);
     }
 
@@ -130,32 +150,53 @@
       transform: scale(0.98);
     }
 
+    .btn-start {
+      background-color: var(--success-color);
+      color: #ffffff;
+    }
+
+    .btn-start:hover {
+      background-color: #16a34a;
+    }
+
+    .btn-restart {
+      background-color: var(--success-color);
+      color: #ffffff;
+      margin-top: 15px;
+    }
+
+    .btn-restart:hover {
+      background-color: #16a34a;
+    }
+
     .result-card {
       display: none;
       text-align: center;
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(30, 41, 59, 1));
-      border: 1px solid var(--accent-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .result-card.game-over {
+      border-color: var(--danger-color);
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(30, 41, 59, 1));
     }
 
     .result-card h2 {
-      font-size: 1.1rem;
-      color: var(--accent-color);
+      font-size: 1.4rem;
       margin-bottom: 12px;
     }
 
-    .result-item {
-      margin: 8px 0;
+    .game-over h2 {
+      color: var(--danger-color);
+    }
+
+    .feedback-text {
+      margin-top: 10px;
       font-size: 1rem;
     }
 
-    .result-value {
-      font-weight: bold;
-      font-size: 1.2rem;
-      color: #ffffff;
-    }
-
     .hidden {
-      display: none;
+      display: none !important;
     }
   </style>
 </head>
@@ -163,131 +204,200 @@
 
   <div class="container">
     <header>
-      <h1>Geometria Espacial</h1>
-      <p>Calcule o volume e a área total de sólidos geométricos</p>
+      <h1>Desafio Geométrico</h1>
+      <p>Calcule o volume ou a área correta para avançar!</p>
     </header>
 
-    <div class="card formula-card" id="formulaCard">
-      <h3 id="formulaTitle">Fórmula do Cilindro</h3>
-      <p id="formulaText">
-        <strong>Volume:</strong> V = π · r² · h<br>
-        <strong>Área Total:</strong> A = 2·π·r·(r + h)
+    <!-- Barra de Status do Jogo -->
+    <div class="status-bar" id="statusBar">
+      <div>Pontos: <span id="scoreText">0</span></div>
+      <div>Tempo: <span id="timerText">30</span>s</div>
+      <div>Vidas: <span id="livesText">❤️❤️❤️</span></div>
+    </div>
+
+    <!-- Tela Inicial de Boas-Vindas -->
+    <div class="card text-center" id="startScreen">
+      <h2 style="margin-bottom: 12px; color: var(--accent-color);">Pronto para o Desafio?</h2>
+      <p style="margin-bottom: 20px; color: var(--text-muted); line-height: 1.5;">
+        Você terá 30 segundos para resolver cada cálculo de Geometria Espacial. Você começa com 3 vidas!
       </p>
+      <button class="btn btn-start" onclick="startGame()">Iniciar Jogo</button>
     </div>
 
-    <div class="card">
-      <div class="form-group">
-        <label for="shapeSelect">Selecione a Forma Geometrica:</label>
-        <select id="shapeSelect" onchange="updateForm()">
-          <option value="cilindro">Cilindro</option>
-          <option value="cone">Cone</option>
-          <option value="esfera">Esfera</option>
-        </select>
+    <!-- Tela do Desafio Atual -->
+    <div id="gameScreen" class="hidden">
+      <div class="card formula-card" id="formulaCard">
+        <h3 id="shapeTitle">Forma Sorteada</h3>
+        <p id="shapeDetails">Valores: ...</p>
       </div>
 
-      <div class="form-group" id="radiusGroup">
-        <label for="radiusInput">Raio (r):</label>
-        <input type="number" id="radiusInput" placeholder="Ex: 5" step="any" min="0">
-      </div>
+      <div class="card" style="margin-top: 15px;">
+        <div class="challenge-box" id="challengeQuestion">
+          Calcule: ?
+        </div>
 
-      <div class="form-group" id="heightGroup">
-        <label for="heightInput">Altura (h):</label>
-        <input type="number" id="heightInput" placeholder="Ex: 10" step="any" min="0">
-      </div>
+        <div class="form-group">
+          <label for="answerInput">Sua Resposta (considere π ≈ 3.14):</label>
+          <input type="number" id="answerInput" placeholder="Ex: 157.08" step="any" autocomplete="off">
+        </div>
 
-      <button class="btn" onclick="calculate()">Calcular</button>
+        <button class="btn" onclick="submitAnswer()">Enviar Resposta</button>
+      </div>
     </div>
 
+    <!-- Card de Resultado / Game Over -->
     <div class="card result-card" id="resultCard">
-      <h2>Resultado do Cálculo</h2>
-      <div class="result-item">
-        <span>Volume (V): </span>
-        <span class="result-value" id="volumeResult">-</span>
+      <h2 id="resultTitle">Game Over!</h2>
+      <p id="resultMessage">Você perdeu todas as vidas.</p>
+      <div style="margin-top: 15px; font-size: 1.2rem;">
+        Pontuação Final: <strong id="finalScore" style="color: var(--accent-color);">0</strong>
       </div>
-      <div class="result-item">
-        <span>Área Total (A): </span>
-        <span class="result-value" id="areaResult">-</span>
-      </div>
+      <button class="btn btn-restart" onclick="startGame()">Jogar Novamente</button>
     </div>
   </div>
 
   <script>
-    const formulas = {
-      cilindro: {
-        title: "Fórmulas do Cilindro",
-        text: "<strong>Volume:</strong> V = π · r² · h<br><strong>Área Total:</strong> A = 2 · π · r · (r + h)"
-      },
-      cone: {
-        title: "Fórmulas do Cone",
-        text: "<strong>Volume:</strong> V = (1/3) · π · r² · h<br><strong>Geratriz (g):</strong> g = √(r² + h²)<br><strong>Área Total:</strong> A = π · r · (r + g)"
-      },
-      esfera: {
-        title: "Fórmulas da Esfera",
-        text: "<strong>Volume:</strong> V = (4/3) · π · r³<br><strong>Área Total:</strong> A = 4 · π · r²"
-      }
-    };
+    const shapes = ['cilindro', 'cone', 'esfera'];
+    
+    let score = 0;
+    let lives = 3;
+    let timer = 30;
+    let timerInterval = null;
+    let currentTargetValue = 0;
 
-    function updateForm() {
-      const shape = document.getElementById('shapeSelect').value;
-      const heightGroup = document.getElementById('heightGroup');
-      const formulaTitle = document.getElementById('formulaTitle');
-      const formulaText = document.getElementById('formulaText');
-
-      // Oculta resultado anterior ao mudar de forma
+    function startGame() {
+      score = 0;
+      lives = 3;
+      document.getElementById('startScreen').classList.add('hidden');
       document.getElementById('resultCard').style.display = 'none';
-
-      // Atualiza o card da fórmula
-      formulaTitle.innerText = formulas[shape].title;
-      formulaText.innerHTML = formulas[shape].text;
-
-      // Oculta ou exibe a altura dependendo da forma
-      if (shape === 'esfera') {
-        heightGroup.classList.add('hidden');
-      } else {
-        heightGroup.classList.remove('hidden');
-      }
+      document.getElementById('gameScreen').classList.remove('hidden');
+      document.getElementById('statusBar').classList.remove('hidden');
+      updateStatus();
+      nextQuestion();
     }
 
-    function calculate() {
-      const shape = document.getElementById('shapeSelect').value;
-      const r = parseFloat(document.getElementById('radiusInput').value);
-      const h = parseFloat(document.getElementById('heightInput').value);
+    function updateStatus() {
+      document.getElementById('scoreText').innerText = score;
+      document.getElementById('livesText').innerText = '❤️'.repeat(lives) || '💀';
+    }
 
-      if (isNaN(r) || r <= 0) {
-        alert('Por favor, insira um valor válido para o raio.');
+    function startTimer() {
+      clearInterval(timerInterval);
+      timer = 30;
+      document.getElementById('timerText').innerText = timer;
+      
+      timerInterval = setInterval(() => {
+        timer--;
+        document.getElementById('timerText').innerText = timer;
+        if (timer <= 0) {
+          clearInterval(timerInterval);
+          handleWrongAnswer('O tempo acabou!');
+        }
+      }, 1000);
+    }
+
+    function nextQuestion() {
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').focus();
+
+      // Sorteia forma e parâmetros
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
+      const targetType = Math.random() > 0.5 ? 'Volume' : 'Área Total'; // Sorteia o tipo do desafio
+      
+      const r = Math.floor(Math.random() * 8) + 2; // Raio entre 2 e 9
+      const h = Math.floor(Math.random() * 8) + 2; // Altura entre 2 e 9
+      
+      const pi = Math.PI;
+
+      let title = "";
+      let details = "";
+
+      if (shape === 'cilindro') {
+        title = "Cilindro";
+        details = `<strong>Raio (r):</strong> ${r} | <strong>Altura (h):</strong> ${h}`;
+        if (targetType === 'Volume') {
+          currentTargetValue = pi * Math.pow(r, 2) * h;
+        } else {
+          currentTargetValue = 2 * pi * r * (r + h);
+        }
+      } else if (shape === 'cone') {
+        title = "Cone";
+        details = `<strong>Raio (r):</strong> ${r} | <strong>Altura (h):</strong> ${h}`;
+        const g = Math.sqrt(Math.pow(r, 2) + Math.pow(h, 2));
+        if (targetType === 'Volume') {
+          currentTargetValue = (1 / 3) * pi * Math.pow(r, 2) * h;
+        } else {
+          currentTargetValue = pi * r * (r + g);
+        }
+      } else if (shape === 'esfera') {
+        title = "Esfera";
+        details = `<strong>Raio (r):</strong> ${r}`;
+        if (targetType === 'Volume') {
+          currentTargetValue = (4 / 3) * pi * Math.pow(r, 3);
+        } else {
+          currentTargetValue = 4 * pi * Math.pow(r, 2);
+        }
+      }
+
+      document.getElementById('shapeTitle').innerText = title;
+      document.getElementById('shapeDetails').innerHTML = details;
+      document.getElementById('challengeQuestion').innerText = `Calcule o(a) ${targetType}`;
+
+      startTimer();
+    }
+
+    function submitAnswer() {
+      const userAnswer = parseFloat(document.getElementById('answerInput').value);
+
+      if (isNaN(userAnswer)) {
+        alert("Por favor, digite uma resposta válida!");
         return;
       }
 
-      let volume = 0;
-      let area = 0;
+      // Tolerância de ± 3% no resultado para compensar variações no valor de PI usado pelo usuário
+      const margin = currentTargetValue * 0.03;
+      const isCorrect = Math.abs(userAnswer - currentTargetValue) <= margin;
 
-      if (shape === 'cilindro') {
-        if (isNaN(h) || h <= 0) {
-          alert('Por favor, insira um valor válido para a altura.');
-          return;
-        }
-        volume = Math.PI * Math.pow(r, 2) * h;
-        area = 2 * Math.PI * r * (r + h);
-
-      } else if (shape === 'cone') {
-        if (isNaN(h) || h <= 0) {
-          alert('Por favor, insira um valor válido para a altura.');
-          return;
-        }
-        const g = Math.sqrt(Math.pow(r, 2) + Math.pow(h, 2)); // Geratriz
-        volume = (1 / 3) * Math.PI * Math.pow(r, 2) * h;
-        area = Math.PI * r * (r + g);
-
-      } else if (shape === 'esfera') {
-        volume = (4 / 3) * Math.PI * Math.pow(r, 3);
-        area = 4 * Math.PI * Math.pow(r, 2);
+      if (isCorrect) {
+        score += 10;
+        updateStatus();
+        nextQuestion();
+      } else {
+        handleWrongAnswer(`Incorreto! O valor aproximado era ${currentTargetValue.toFixed(2)}`);
       }
-
-      // Exibe os resultados formatados
-      document.getElementById('volumeResult').innerText = `${volume.toFixed(2)} u³`;
-      document.getElementById('areaResult').innerText = `${area.toFixed(2)} u²`;
-      document.getElementById('resultCard').style.display = 'block';
     }
+
+    function handleWrongAnswer(reason) {
+      lives--;
+      updateStatus();
+
+      if (lives <= 0) {
+        gameOver();
+      } else {
+        alert(`${reason}\nVocê perdeu 1 vida!`);
+        nextQuestion();
+      }
+    }
+
+    function gameOver() {
+      clearInterval(timerInterval);
+      document.getElementById('gameScreen').classList.add('hidden');
+      document.getElementById('statusBar').classList.add('hidden');
+      
+      const resultCard = document.getElementById('resultCard');
+      resultCard.classList.add('game-over');
+      document.getElementById('resultTitle').innerText = "Fim de Jogo!";
+      document.getElementById('resultMessage').innerText = "Você gastou todas as suas vidas.";
+      document.getElementById('finalScore').innerText = score;
+      resultCard.style.display = 'block';
+    }
+
+    // Suporte para enviar com a tecla Enter
+    document.getElementById('answerInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        submitAnswer();
+      }
+    });
   </script>
 </body>
 </html>
